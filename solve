@@ -1,0 +1,73 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <sstream>
+#include <map>
+#include <algorithm>
+
+using namespace std;
+
+void solve() {
+    int N, Q;
+    cin >> N >> Q;
+    cin.ignore(); // Ignore the newline character after reading N and Q
+
+    map<string, string> attributeDB; // Stores "tag1.tag2~attr" -> "value"
+    string tag_preamble = "";
+
+    for (int i = 0; i < N; ++i) {
+        string line;
+        getline(cin, line);
+        
+        // Remove angle brackets
+        line.erase(0, 1); 
+        line.erase(line.size() - 1, 1);
+
+        // Process closing tags
+        if (line[0] == '/') {
+            string tag = line.substr(1);
+            size_t pos = tag_preamble.find("." + tag);
+            if (pos == string::npos) {
+                tag_preamble = "";
+            } else {
+                tag_preamble = tag_preamble.substr(0, pos);
+            }
+            continue;
+        }
+
+        // Process opening tags and attributes
+        stringstream ss(line);
+        string word, attribute, value;
+        string current_tag;
+        ss >> current_tag;
+
+        if (tag_preamble == "") {
+            tag_preamble = current_tag;
+        } else {
+            tag_preamble += "." + current_tag;
+        }
+
+        while (ss >> attribute) {
+            ss >> word >> value; // Read '=' and '"value"'
+            // Remove the double quotes from value
+            value = value.substr(1, value.size() - 2);
+            // Store in the map
+            attributeDB[tag_preamble + "~" + attribute] = value;
+        }
+    }
+
+    for (int i = 0; i < Q; ++i) {
+        string query;
+        getline(cin, query);
+        if (attributeDB.find(query) != attributeDB.end()) {
+            cout << attributeDB[query] << endl;
+        } else {
+            cout << "Not Found!" << endl;
+        }
+    }
+}
+
+int main() {
+    solve();
+    return 0;
+}
